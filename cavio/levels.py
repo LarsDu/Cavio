@@ -18,9 +18,10 @@ class Level(Drawable, Updatable):
         self.camera = Camera()
         self.background = Background()
         self.entities = []
+        self.init_level()
     
     def on_start(self) -> None:
-        self.init_level()
+        pass
 
     def on_end(self) -> None:
         pass
