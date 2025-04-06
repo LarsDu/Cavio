@@ -25,4 +25,7 @@ class Collidable(Protocol):
     def on_collider_end(self, other: 'Collidable') -> None:
         ...
 
+class Damagable(Protocol):
+    hp: int
+    damage: int
 
