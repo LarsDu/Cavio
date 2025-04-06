@@ -1,4 +1,7 @@
-from cavio.interfaces import Drawable, Updatable, Damagable
+from enum import Enum
+
+from cavio.interfaces import Damagable, Drawable, Updatable
+
 
 class Entity(Drawable, Updatable):
     def __init__(self, x: float, y: float, w: float, h: float) -> None:
@@ -6,6 +9,7 @@ class Entity(Drawable, Updatable):
         self.y = y
         self.w = w
         self.h = h
+        self.is_facing_right: bool = True
         self.is_active: bool = False
         self.is_alive: bool = False
         self.dx: float = 0
@@ -31,4 +35,3 @@ class DamagableEntity(Entity, Damagable):
         super().__init__(x, y, w, h)
         self.hp = hp
         self.damage = damage
-

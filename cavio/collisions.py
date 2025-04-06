@@ -1,29 +1,26 @@
 import pyxel
+from constants import TILE_SIZE, ladder_tiles, solid_tiles
 
-from constants import TILE_SIZE, solid_tiles, ladder_tiles
 
 def is_solid_coord(wx: float, wy: float, tilemap_idx: int = 0) -> bool:
     """Check if the current tile is solid"""
-    return is_solid_tile(
-        int(wx) // TILE_SIZE, int(wy) // TILE_SIZE, tilemap_idx
-    )
+    return is_solid_tile(int(wx) // TILE_SIZE, int(wy) // TILE_SIZE, tilemap_idx)
+
 
 def is_ladder_coord(wx: float, wy: float, tilemap_idx: int = 0) -> bool:
     """Check if the current tile is a ladder"""
-    return is_ladder_tile(
-        int(wx) // TILE_SIZE, int(wy) // TILE_SIZE, tilemap_idx
-    )
+    return is_ladder_tile(int(wx) // TILE_SIZE, int(wy) // TILE_SIZE, tilemap_idx)
+
 
 def is_solid_tile(tx: float, ty: float, tilemap_idx: int = 0) -> bool:
-    """Check if the current tile is solid
-    """
+    """Check if the current tile is solid"""
     return pyxel.tilemaps[tilemap_idx].pget(tx, ty) in solid_tiles
 
 
 def is_ladder_tile(tx: float, ty: float, tilemap_idx: int = 0) -> bool:
     """Check if the current tile is a ladder"""
     return pyxel.tilemaps[tilemap_idx].pget(tx, ty) in ladder_tiles
- 
+
 
 def collide_aabb(
     x1: float,
@@ -51,5 +48,3 @@ def collide_aabb(
         bool: True if the boxes collide
     """
     return x1 < x2 + w2 and x1 + w1 > x2 and y1 < y2 + h2 and y1 + h1 > y2
-
-

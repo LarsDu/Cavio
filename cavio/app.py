@@ -1,6 +1,7 @@
 import pyxel
-from constants import SCREEN_WIDTH, SCREEN_HEIGHT
-from levels import level_factory, Level
+from constants import SCREEN_HEIGHT, SCREEN_WIDTH
+from levels import Level, level_factory
+
 
 class App:
 
@@ -9,11 +10,11 @@ class App:
         if self._level is None:
             return -1
         return self._level.id
-    
+
     @level_id.setter
     def level_id(self, level_id: int) -> None:
         if level_id != self.level_id:
-            if self._level is not None: 
+            if self._level is not None:
                 self._level.on_end()
             self._level = level_factory(level_id)
             if self._level is not None:
@@ -32,6 +33,3 @@ class App:
 
     def update(self):
         self.level.update()
-
-
-

@@ -31,6 +31,3 @@ class Robot(DamagableEntity):
         damage: int = 1,
     ):
         super().__init__(x, y, w, h, hp, damage)
-
-
-
