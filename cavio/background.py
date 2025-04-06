@@ -29,11 +29,11 @@ class BackgroundSky(Background):
         # Tile twice horizontally to create a seamless background filling the camera view horizontally
         for i in range(self.camera.w // self.w + 1):
             pyxel.bltm(
-                self.x - self.camera.x + i * self.w,
-                self.y - self.camera.y,
+                0,
+                0,
                 BACKGROUND_TILEMAP,
-                self.u,
-                self.v,
+                self.u + (i * self.w) % self.w,
+                self.v + (i * self.h) % self.h,
                 self.w,
                 self.h,
             )

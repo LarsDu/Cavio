@@ -2,8 +2,16 @@ import pyxel
 
 from cavio.background import Background, BackgroundMine, BackgroundSky
 from cavio.camera import Camera
-from cavio.constants import PLAYER_MARKER, ZOMBIE_MARKER, marker_tiles
+from cavio.constants import (
+    LEVEL1_BOUNDS,
+    LEVEL2_BOUNDS,
+    LEVEL3_BOUNDS,
+    PLAYER_MARKER,
+    TRANSPARENCY_COLOR,
+    ZOMBIE_MARKER,
+)
 from cavio.entities.enemies import ZombieTurtle
+from cavio.entities.entity import Entity
 from cavio.entities.player import Player
 from cavio.interfaces import Drawable, Updatable
 from cavio.tilemap import tile_coords_to_world_coords
@@ -11,16 +19,17 @@ from cavio.tilemap import tile_coords_to_world_coords
 
 class Level(Drawable, Updatable):
     id: int
+    tilemap_idx: int
+    tx: int
+    ty: int
+    tw: int
+    th: int
 
-    def __init__(self, tx: int, ty: int, tw: int, th: int) -> None:
-        self.tx = tx
-        self.ty = ty
-        self.tw = tw
-        self.th = th
-
+    def __init__(self) -> None:
         # The following fields are typically overwritten in subclasses
         self.player = Player(PLAYER_MARKER[0], PLAYER_MARKER[1])  # Overwritten in
         self.camera = Camera()
+        self.camera.target = self.player
         self.background = Background()
         self.entities = []
         self.init_level()
@@ -31,6 +40,10 @@ class Level(Drawable, Updatable):
     def on_end(self) -> None:
         pass
 
+    def set_player_position(self, x: int, y: int) -> None:
+        self.player.x = x
+        self.player.y = y
+
     def init_level(self) -> None:
         # Instantiate all entities in level bounds
         for ttx in range(self.tx, self.tx + self.tw):
@@ -38,9 +51,9 @@ class Level(Drawable, Updatable):
                 # Convert tile coordinates to image coordinates (which use tile indices)
                 tile_value = pyxel.tilemaps[0].pget(ttx, tty)
                 if tile_value == PLAYER_MARKER:
-                    self.player = Player(**tile_coords_to_world_coords(ttx, tty))
+                    self.set_player_position(*tile_coords_to_world_coords(ttx, tty))
                 elif tile_value == ZOMBIE_MARKER:
-                    self.entities.append(**tile_coords_to_world_coords(ttx, tty))
+                    self.entities.append(*tile_coords_to_world_coords(ttx, tty))
 
     def activate_entities_in_camera_view(self) -> None:
         # TODO: Activate entities in camera view and deactivate entities outside of camera view
@@ -64,14 +77,28 @@ class Level(Drawable, Updatable):
 
     def draw(self):
         self.background.draw()
+        self.draw_tilemap()
         self.player.draw()
         for entity in self.entities:
             if entity.is_active:
                 entity.draw()
 
+    def draw_tilemap(self):
+        pyxel.bltm(
+            0,
+            0,
+            self.tilemap_idx,
+            self.camera.x,
+            self.camera.y,
+            self.camera.w,
+            self.camera.h,
+            TRANSPARENCY_COLOR,
+        )
+
 
 class MainMenuLevel(Level):
     id = 0
+    tilemap_idx = 0
 
     def __init__(self) -> None:
         super().__init__()
@@ -79,22 +106,37 @@ class MainMenuLevel(Level):
 
 class Level1(Level):
     id = 1
+    tx, ty, tw, th, tilemap_idx = LEVEL1_BOUNDS
 
     def __init__(self) -> None:
         super().__init__()
         self.background = BackgroundSky()
 
+    def update(self):
+        super().update()
+
+    def draw(self):
+        super().draw()
+
 
 class Level2(Level):
     id = 2
+    tx, ty, tw, th, tilemap_idx = LEVEL2_BOUNDS
 
     def __init__(self) -> None:
         super().__init__()
         self.background = BackgroundMine()
 
+    def update(self):
+        super().update()
+
+    def draw(self):
+        super().draw()
+
 
 class Level3(Level):
     id = 3
+    tx, ty, tw, th, tilemap_idx = LEVEL3_BOUNDS
 
     def __init__(self) -> None:
         super().__init__()

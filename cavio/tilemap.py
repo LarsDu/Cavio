@@ -6,5 +6,5 @@ from cavio.constants import TILE_SIZE
 
 
 @cache
-def tile_coords_to_world_coords(tx: int, ty: int) -> tuple[int, int]:
-    return (tx * TILE_SIZE, ty * TILE_SIZE)
+def tile_coords_to_world_coords(*args: tuple[float | int]) -> tuple[int, int]:
+    return tuple(int(arg * TILE_SIZE) for arg in args)

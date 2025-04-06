@@ -1,30 +1,31 @@
 import pyxel
-from constants import SCREEN_HEIGHT, SCREEN_WIDTH
-from levels import Level, level_factory
+
+from cavio.constants import SCREEN_HEIGHT, SCREEN_WIDTH
+from cavio.levels import level_factory
 
 
 class App:
 
     @property
     def level_id(self) -> int:
-        if self._level is None:
+        if self.level is None:
             return -1
-        return self._level.id
+        return self.level.id
 
     @level_id.setter
     def level_id(self, level_id: int) -> None:
         if level_id != self.level_id:
-            if self._level is not None:
-                self._level.on_end()
-            self._level = level_factory(level_id)
-            if self._level is not None:
-                self._level.on_start()
+            if self.level is not None:
+                self.level.on_end()
+            self.level = level_factory(level_id)
+            if self.level is not None:
+                self.level.on_start()
 
     def __init__(self) -> None:
         pyxel.init(SCREEN_WIDTH, SCREEN_HEIGHT)
         pyxel.load("assets/cavio.pyxres")
-        self._level = None
-        self.level_id = 1
+        self.level = None
+        self.level_id = 1  # TODO: Switch to 0 for main menu
         pyxel.run(self.update, self.draw)
 
     def draw(self):

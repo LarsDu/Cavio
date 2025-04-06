@@ -1,6 +1,8 @@
+from enum import Enum
+
 import pyxel
 
-from cavio.interfaces import Updatable
+from cavio.interfaces import Drawable, Updatable
 
 
 class State(Updatable, Drawable):
@@ -21,9 +23,12 @@ class State(Updatable, Drawable):
 
 
 class StateMachine:
-    def __init__(self):
-        self.states = {}
+    def __init__(self, states: dict[Enum, State]):
+        self.states = states
         self.current_state = None
 
-    def add_state(self, state: State):
-        self.states[state.name] = state
+    def __getitem__(self, key: str) -> State:
+        return self.states[key]
+
+    def __setitem__(self, key: str, value: State):
+        self.states[key] = value
