@@ -1,7 +1,8 @@
 from cavio.entities.entity import DamagableEntity
+from cavio.interfaces import Collidable
 
 
-class ZombieTurtle(DamagableEntity):
+class ZombieTurtle(DamagableEntity, Collidable):
     def __init__(
         self,
         x: float = 0.0,
@@ -19,8 +20,14 @@ class ZombieTurtle(DamagableEntity):
     def draw(self):
         pass
 
+    def collide(self, other: Collidable):
+        pass
 
-class Robot(DamagableEntity):
+    def on_collision_enter(self, other: Collidable):
+        pass
+
+
+class Robot(DamagableEntity, Collidable):
     def __init__(
         self,
         x: float = 0.0,
@@ -31,3 +38,12 @@ class Robot(DamagableEntity):
         damage: int = 1,
     ):
         super().__init__(x, y, w, h, hp, damage)
+
+    def update(self):
+        pass
+
+    def draw(self):
+        pass
+
+    def on_collision_enter(self, other: Collidable):
+        pass

@@ -1,6 +1,6 @@
 import pyxel
 
-from cavio.background import Background
+from cavio.background import Background, BackgroundMine, BackgroundSky
 from cavio.camera import Camera
 from cavio.constants import PLAYER_MARKER, ZOMBIE_MARKER, marker_tiles
 from cavio.entities.enemies import ZombieTurtle
@@ -53,7 +53,6 @@ class Level(Drawable, Updatable):
     def update(self):
         self.activate_entities_in_camera_view()
         self.deactivate_entities_outside_camera_view()
-        self.background.update()
         self.player.update()
         self.camera.update()
         for entity in self.entities:
@@ -83,6 +82,7 @@ class Level1(Level):
 
     def __init__(self) -> None:
         super().__init__()
+        self.background = BackgroundSky()
 
 
 class Level2(Level):
@@ -90,6 +90,7 @@ class Level2(Level):
 
     def __init__(self) -> None:
         super().__init__()
+        self.background = BackgroundMine()
 
 
 class Level3(Level):

@@ -2,6 +2,8 @@ SCREEN_WIDTH = 256
 SCREEN_HEIGHT = 256
 TILE_SIZE = 8
 
+# TILEMAP
+BACKGROUND_TILEMAP = 1
 
 # EDITOR MARKERS (x,y)
 PLAYER_MARKER = (8, 5)
@@ -56,6 +58,10 @@ GEM = (2, 15, 2, 2)
 # Environment
 LADDER = (0, 13, 2, 2)
 
+#  Backgrounds
+BACKGROUND_SKY = (0, 0, 64, 48)
+BACKGROUND_MINES = (0, 64, 64, 48)
+
 # TILE sets with special properties
 
 solid_tiles = {
@@ -67,4 +73,11 @@ solid_tiles = {
 
 ladder_tiles = {
     BASIC_LADDER,
+}
+
+marker_tiles = {
+    PLAYER_MARKER,
+    ZOMBIE_MARKER,
+    BAT_MARKER,
+    GEM_MARKER,
 }
