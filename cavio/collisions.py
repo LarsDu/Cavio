@@ -241,9 +241,6 @@ def resolve_vertical_collision(
             # Snap to the top of the platform and zero out velocity
             tile_y = ((entity.y + entity.h + dy) // TILE_SIZE) * TILE_SIZE
             new_dy = tile_y - (entity.y + entity.h)
-            # If we're very close to the platform, snap exactly to it
-            if abs(new_dy) < 0.1:
-                new_dy = 0
     elif dy < 0:
         # Moving up
         if not is_colliding_above(entity, tilemap_idx):

@@ -72,20 +72,18 @@ class PlayerGroundState(PlayerState):
         ## Apply gravity
         self.player.dy = min(self.player.dy + GRAVITY, TERMINAL_VELOCITY)
 
-        # Check if we're on the ground before moving
-        was_grounded = self.player.is_grounded
-        self.player.is_grounded = is_colliding_below(self.player, 0)
-
         ## Resolve vertical collision
         prev_dy = self.player.dy
         self.player.dy = resolve_vertical_collision(self.player, self.player.dy, 0)
 
-        # Update grounded state after collision
-        if not was_grounded and self.player.dy == 0 and prev_dy > 0:
-            self.player.is_grounded = True
-
         self.player.x += self.player.dx
         self.player.y += self.player.dy
+
+        # If player was pushed back from collision, zero out velocity
+        # to avoid bounce. Note this can be disabled to enable bounce.
+        if prev_dy > 0 and self.player.dy < 0:
+            self.player.dy = 0
+            self.player.is_grounded = True
 
     def draw(self):
         u, v, w, h = tile_coords_to_world_coords(*PLAYER_IDLE)
