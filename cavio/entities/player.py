@@ -2,11 +2,18 @@ from enum import Enum, auto
 
 import pyxel
 
+from cavio.collisions import (
+    is_colliding_below,
+    resolve_horizontal_collision,
+    resolve_vertical_collision,
+)
 from cavio.constants import (
     GRAVITY,
     PLAYER_IDLE,
     PLAYER_WALK1,
     PLAYER_WALK2,
+    TERMINAL_VELOCITY,
+    TILE_SIZE,
     TRANSPARENCY_COLOR,
 )
 from cavio.entities.entity import DamagableEntity
@@ -41,8 +48,9 @@ class PlayerGroundState(PlayerState):
         super().__init__(player)
 
     def update(self):
-        self.player.dx = 0
-        self.player.dy = 0
+        self.player.dx = self.player.dx * (1 - self.player.default_friction)
+        if abs(self.player.dx) < 0.01:
+            self.player.dx = 0
         if pyxel.btn(pyxel.KEY_RIGHT) or pyxel.btn(pyxel.GAMEPAD1_BUTTON_DPAD_RIGHT):
             self.player.is_facing_right = True
             self.player.dx = self.player.speed
@@ -55,30 +63,54 @@ class PlayerGroundState(PlayerState):
             or pyxel.btn(pyxel.GAMEPAD1_BUTTON_A)
         ):
             self.player.dy = -self.player.jump
+            self.player.is_grounded = False
 
         # Horizontal movement
+        self.player.dx = resolve_horizontal_collision(self.player, self.player.dx, 0)
 
         # Vertical movement
-        self.player.dy += GRAVITY
+        ## Apply gravity
+        self.player.dy = min(self.player.dy + GRAVITY, TERMINAL_VELOCITY)
+
+        # Check if we're on the ground before moving
+        was_grounded = self.player.is_grounded
+        self.player.is_grounded = is_colliding_below(self.player, 0)
+
+        ## Resolve vertical collision
+        prev_dy = self.player.dy
+        self.player.dy = resolve_vertical_collision(self.player, self.player.dy, 0)
+
+        # Update grounded state after collision
+        if not was_grounded and self.player.dy == 0 and prev_dy > 0:
+            self.player.is_grounded = True
 
         self.player.x += self.player.dx
         self.player.y += self.player.dy
 
     def draw(self):
-        u, v, w, h = tile_coords_to_world_coords(*PLAYER_WALK1)
+        u, v, w, h = tile_coords_to_world_coords(*PLAYER_IDLE)
+
+        u1, v1, _, _ = tile_coords_to_world_coords(*PLAYER_WALK1)
         u2, v2, _, _ = tile_coords_to_world_coords(*PLAYER_WALK2)
-        u, v = (
-            (u2, v2)
-            if (abs(self.player.dx) > 0 and (pyxel.frame_count >> 2) & 1)
-            else (u, v)
-        )
+        if self.player.is_grounded:
+            if abs(self.player.dx) > 0.01:
+                u, v = (
+                    (u2, v2)
+                    if (abs(self.player.dx) > 0 and (pyxel.frame_count >> 2) & 1)
+                    else (u, v)
+                )
+        else:
+            u, v, _, _ = tile_coords_to_world_coords(
+                *PLAYER_WALK1
+            )  # TODO: Add air animation
         w = w if self.player.is_facing_right else -w
         pyxel.blt(self.player.sx, self.player.sy, 0, u, v, w, h, TRANSPARENCY_COLOR)
 
 
 class Player(DamagableEntity):
     jump = 4.0
-    speed = 2.5
+    speed = 4.0
+    default_friction = 0.5
 
     @property
     def movement_state(self) -> PlayerMovementState:

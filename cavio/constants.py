@@ -2,12 +2,12 @@ SCREEN_WIDTH = 256
 SCREEN_HEIGHT = 256
 TILE_SIZE = 8
 TRANSPARENCY_COLOR = 2
-
+TERMINAL_VELOCITY = 10.0
 # TILEMAP
 BACKGROUND_TILEMAP = 1
 
 # GRAVITY
-GRAVITY = 1.0
+GRAVITY = 0.15
 
 # EDITOR MARKERS (x,y)
 PLAYER_MARKER = (8, 5)
@@ -90,3 +90,6 @@ marker_tiles = {
     BAT_MARKER,
     GEM_MARKER,
 }
+
+one_way_platform_tiles = {}
+damaging_tiles = {}

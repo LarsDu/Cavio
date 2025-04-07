@@ -1,7 +1,5 @@
 from functools import cache
 
-import pyxel
-
 from cavio.constants import TILE_SIZE
 
 

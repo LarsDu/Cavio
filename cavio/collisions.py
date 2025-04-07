@@ -1,12 +1,12 @@
 import pyxel
-from constants import (
+
+from cavio.constants import (
     TILE_SIZE,
     damaging_tiles,
     ladder_tiles,
     one_way_platform_tiles,
     solid_tiles,
 )
-
 from cavio.entities.entity import Entity
 
 
@@ -62,7 +62,7 @@ def is_colliding_below(entity, tilemap_idx=0):
     """Check if the entity is colliding with a solid tile below it.
 
     Args:
-        entity: The entity to check (must have x, y, width, height properties)
+        entity: The entity to check (must have x, y, w, h properties)
         tilemap_idx: The tilemap index to check against
 
     Returns:
@@ -71,9 +71,9 @@ def is_colliding_below(entity, tilemap_idx=0):
     # Check the bottom edge of the entity, at 3 points (left, center, right)
     # This helps catch when the entity is partially on a platform
     left_x = entity.x + 2
-    center_x = entity.x + entity.width // 2
-    right_x = entity.x + entity.width - 2
-    bottom_y = entity.y + entity.height
+    center_x = entity.x + entity.w // 2
+    right_x = entity.x + entity.w - 2
+    bottom_y = entity.y + entity.h
 
     # Check if any of the three points are on a solid tile
     return (
@@ -88,7 +88,7 @@ def is_colliding_above(entity, tilemap_idx=0):
     """Check if the entity is colliding with a solid tile above it.
 
     Args:
-        entity: The entity to check (must have x, y, width, height properties)
+        entity: The entity to check (must have x, y, w, h properties)
         tilemap_idx: The tilemap index to check against
 
     Returns:
@@ -96,8 +96,8 @@ def is_colliding_above(entity, tilemap_idx=0):
     """
     # Check the top edge of the entity
     left_x = entity.x + 2
-    center_x = entity.x + entity.width // 2
-    right_x = entity.x + entity.width - 2
+    center_x = entity.x + entity.w // 2
+    right_x = entity.x + entity.w - 2
     top_y = entity.y
 
     return (
@@ -111,7 +111,7 @@ def is_colliding_left(entity: Entity, tilemap_idx=0):
     """Check if the entity is colliding with a solid tile to its left.
 
     Args:
-        entity: The entity to check (must have x, y, width, height properties)
+        entity: The entity to check (must have x, y, w, h properties)
         tilemap_idx: The tilemap index to check against
 
     Returns:
@@ -120,8 +120,8 @@ def is_colliding_left(entity: Entity, tilemap_idx=0):
     # Check the left edge of the entity
     left_x = entity.x
     top_y = entity.y + 2
-    middle_y = entity.y + entity.height // 2
-    bottom_y = entity.y + entity.height - 2
+    middle_y = entity.y + entity.h // 2
+    bottom_y = entity.y + entity.h - 2
 
     return (
         is_solid_coord(left_x - 1, top_y, tilemap_idx)
@@ -141,10 +141,10 @@ def is_colliding_right(entity, tilemap_idx=0):
         bool: True if the entity is colliding with a solid tile to the right
     """
     # Check the right edge of the entity
-    right_x = entity.x + entity.width
+    right_x = entity.x + entity.w
     top_y = entity.y + 2
-    middle_y = entity.y + entity.height // 2
-    bottom_y = entity.y + entity.height - 2
+    middle_y = entity.y + entity.h // 2
+    bottom_y = entity.y + entity.h - 2
 
     return (
         is_solid_coord(right_x + 1, top_y, tilemap_idx)
@@ -165,9 +165,9 @@ def is_on_one_way_platform(entity, tilemap_idx=0):
     """
     # Check the bottom edge of the entity
     left_x = entity.x + 2
-    right_x = entity.x + entity.width - 2
-    bottom_y = entity.y + entity.height
-    center_x = entity.x + entity.width // 2
+    right_x = entity.x + entity.w - 2
+    bottom_y = entity.y + entity.h
+    center_x = entity.x + entity.w // 2
     # Check if any of the three points are on a one-way platform
     return (
         is_one_way_platform_tile(left_x, bottom_y, tilemap_idx)
@@ -190,6 +190,76 @@ def is_one_way_platform_tile(tx, ty, tilemap_idx=0):
     return pyxel.tilemaps[tilemap_idx].pget(tx, ty) in one_way_platform_tiles
 
 
+def resolve_horizontal_collision(
+    entity: Entity, dx: float, tilemap_idx: int = 0
+) -> float:
+    """Resolve horizontal collision by adjusting entity position.
+
+    Args:
+        entity: The entity to adjust
+        dx: Movement in x direction
+        tilemap_idx: The tilemap index to check against
+
+    Returns:
+        float: Adjusted dx value
+    """
+    test_x = entity.x + dx
+    if dx > 0 and not any(
+        is_solid_coord(test_x + entity.w, entity.y + y, tilemap_idx)
+        for y in range(2, entity.h - 1, 4)
+    ):
+        new_dx = dx
+    elif dx < 0 and not any(
+        is_solid_coord(test_x, entity.y + y, tilemap_idx)
+        for y in range(2, entity.h - 1, 4)
+    ):
+        new_dx = dx
+    else:
+        # Collision occurred, stop horizontal movement
+        new_dx = 0
+    return new_dx
+
+
+def resolve_vertical_collision(
+    entity: Entity, dy: float, tilemap_idx: int = 0
+) -> float:
+    """Resolve vertical collision by adjusting entity position.
+
+    Args:
+        entity: The entity to adjust
+        dy: Movement in y direction
+        tilemap_idx: The tilemap index to check against
+
+    Returns:
+        float: Adjusted dy value
+    """
+    if dy > 0:
+        # Moving down
+        if not is_colliding_below(entity, tilemap_idx):
+            new_dy = dy
+        else:
+            # Snap to the top of the platform and zero out velocity
+            tile_y = ((entity.y + entity.h + dy) // TILE_SIZE) * TILE_SIZE
+            new_dy = tile_y - (entity.y + entity.h)
+            # If we're very close to the platform, snap exactly to it
+            if abs(new_dy) < 0.1:
+                new_dy = 0
+    elif dy < 0:
+        # Moving up
+        if not is_colliding_above(entity, tilemap_idx):
+            new_dy = dy
+        else:
+            # Snap to the bottom of the blocking tile and zero out velocity
+            tile_y = ((entity.y + dy) // TILE_SIZE + 1) * TILE_SIZE
+            new_dy = tile_y - entity.y
+            # If we're very close to the ceiling, snap exactly to it
+            if abs(new_dy) < 0.1:
+                new_dy = 0
+    else:
+        new_dy = 0
+    return new_dy
+
+
 def resolve_collision(
     entity: Entity, dx: float, dy: float, tilemap_idx: int = 0
 ) -> tuple[float, float]:
@@ -204,42 +274,8 @@ def resolve_collision(
     Returns:
         tuple: Adjusted (dx, dy) values
     """
-    # First attempt to move horizontally
-    test_x = entity.x + dx
-    if dx > 0 and not any(
-        is_solid_coord(test_x + entity.width, entity.y + y, tilemap_idx)
-        for y in range(2, entity.height - 1, 4)
-    ):
-        new_dx = dx
-    elif dx < 0 and not any(
-        is_solid_coord(test_x, entity.y + y, tilemap_idx)
-        for y in range(2, entity.height - 1, 4)
-    ):
-        new_dx = dx
-    else:
-        # Collision occurred, stop horizontal movement
-        new_dx = 0
-
-    # Then attempt to move vertically
-    if dy > 0:
-        # Moving down
-        if not is_colliding_below(entity, tilemap_idx):
-            new_dy = dy
-        else:
-            # Snap to the top of the platform
-            tile_y = ((entity.y + entity.height + dy) // TILE_SIZE) * TILE_SIZE
-            new_dy = tile_y - (entity.y + entity.height)
-    elif dy < 0:
-        # Moving up
-        if not is_colliding_above(entity, tilemap_idx):
-            new_dy = dy
-        else:
-            # Snap to the bottom of the blocking tile
-            tile_y = ((entity.y + dy) // TILE_SIZE + 1) * TILE_SIZE
-            new_dy = tile_y - entity.y
-    else:
-        new_dy = 0
-
+    new_dx = resolve_horizontal_collision(entity, dx, tilemap_idx)
+    new_dy = resolve_vertical_collision(entity, dy, tilemap_idx)
     return new_dx, new_dy
 
 
@@ -317,8 +353,8 @@ def is_entity_on_special_surface(
         bool: True if the entity is on a damaging surface
     """
     # Check multiple points around the entity's bounding box
-    for x in range(entity.x + 2, entity.x + entity.width - 1, 4):
-        for y in range(entity.y + 2, entity.y + entity.height - 1, 4):
+    for x in range(entity.x + 2, entity.x + entity.w - 1, 4):
+        for y in range(entity.y + 2, entity.y + entity.h - 1, 4):
             tx = x // TILE_SIZE
             ty = y // TILE_SIZE
             if is_on_special_surface(tx, ty, surface_set, tilemap_idx):
