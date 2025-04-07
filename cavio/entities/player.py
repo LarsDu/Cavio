@@ -58,14 +58,18 @@ class PlayerWalkingState(PlayerState):
     def draw(self):
         u, v, w, h = tile_coords_to_world_coords(*PLAYER_WALK1)
         u2, v2, _, _ = tile_coords_to_world_coords(*PLAYER_WALK2)
-        u, v = (u2, v2) if pyxel.frame_count & 1 else (u2, v2)
+        u, v = (
+            (u2, v2)
+            if (abs(self.player.dx) > 0 and pyxel.frame_count // 3 & 1)
+            else (u, v)
+        )
         w = w if self.player.is_facing_right else -w
         pyxel.blt(self.player.sx, self.player.sy, 0, u, v, w, h, TRANSPARENCY_COLOR)
 
 
 class Player(DamagableEntity):
     jump = 2
-    speed = 1.4
+    speed = 2.5
 
     @property
     def movement_state(self) -> PlayerMovementState:

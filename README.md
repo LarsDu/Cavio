@@ -31,7 +31,7 @@ uv sync
 Play the game
 
 ```
-pyxel run pyxel_plumber/app.py
+pyxel run main.py
 ```
 
 
@@ -40,7 +40,7 @@ pyxel run pyxel_plumber/app.py
 Edit graphics, tilemaps, and sound
 
 ```
-pyxel edit pyxel_plumber/assets/cavio.pyxres
+pyxel edit cavio/assets/cavio.pyxres
 ```
 
 ### Development environment setup for contributors
