@@ -23,6 +23,7 @@ class Entity(Drawable, Updatable):
         self.is_facing_right: bool = True
         self.is_active: bool = False
         self.is_alive: bool = False
+        self.is_grounded: bool = True
         self.dx: float = 0
         self.dy: float = 0
 
