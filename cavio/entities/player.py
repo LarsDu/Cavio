@@ -2,16 +2,15 @@ from enum import Enum, auto
 
 import pyxel
 
-from cavio.constants import PLAYER_IDLE, PLAYER_WALK1, TRANSPARENCY_COLOR
+from cavio.constants import PLAYER_IDLE, PLAYER_WALK1, PLAYER_WALK2, TRANSPARENCY_COLOR
 from cavio.entities.entity import DamagableEntity
 from cavio.states import State, StateMachine
 from cavio.tilemap import tile_coords_to_world_coords
 
 
 class PlayerMovementState(Enum):
-    IDLE = auto()
     WALKING = auto()
-    FALLING = auto()
+    AIR = auto()
     DYING = auto()
 
 
@@ -29,38 +28,6 @@ class PlayerState(State):
         pass
 
 
-class PlayerIdleState(PlayerState):
-    key = PlayerMovementState.IDLE
-
-    def __init__(self, player: "Player"):
-        super().__init__(player)
-
-    def update(self):
-        if pyxel.btn(pyxel.KEY_RIGHT):
-            self.player.is_facing_right = True
-            self.player.dx = self.player.speed
-        elif pyxel.btn(pyxel.KEY_LEFT):
-            self.player.is_facing_right = False
-            self.player.dx = -self.player.speed
-        elif (
-            pyxel.btn(pyxel.KEY_UP)
-            or pyxel.btn(pyxel.KEY_SPACE)
-            or pyxel.btn(pyxel.GAMEPAD1_BUTTON_A)
-        ):
-            self.player.dy = -self.player.jump
-        elif pyxel.btn(pyxel.KEY_DOWN):
-            self.player.dy = self.player.speed
-        else:
-            self.player.dx = 0
-            self.player.dy = 0
-        self.player.x += self.player.dx
-        self.player.y += self.player.dy
-
-    def draw(self):
-        u, v, w, h = tile_coords_to_world_coords(*PLAYER_IDLE)
-        pyxel.blt(self.player.sx, self.player.sy, 0, u, v, w, h, TRANSPARENCY_COLOR)
-
-
 class PlayerWalkingState(PlayerState):
     key = PlayerMovementState.WALKING
 
@@ -68,6 +35,8 @@ class PlayerWalkingState(PlayerState):
         super().__init__(player)
 
     def update(self):
+        self.player.dx = 0
+        self.player.dy = 0
         if pyxel.btn(pyxel.KEY_RIGHT):
             self.player.is_facing_right = True
             self.player.dx = self.player.speed
@@ -88,6 +57,8 @@ class PlayerWalkingState(PlayerState):
 
     def draw(self):
         u, v, w, h = tile_coords_to_world_coords(*PLAYER_WALK1)
+        u2, v2, _, _ = tile_coords_to_world_coords(*PLAYER_WALK2)
+        u, v = (u2, v2) if pyxel.frame_count & 1 else (u2, v2)
         w = w if self.player.is_facing_right else -w
         pyxel.blt(self.player.sx, self.player.sy, 0, u, v, w, h, TRANSPARENCY_COLOR)
 
@@ -109,11 +80,10 @@ class Player(DamagableEntity):
 
         self.state_machine = StateMachine(
             {
-                PlayerMovementState.IDLE: PlayerIdleState(self),
                 PlayerMovementState.WALKING: PlayerWalkingState(self),
             }
         )
-        self.movement_state = PlayerMovementState.IDLE
+        self.movement_state = PlayerMovementState.WALKING
 
     def update(self):
         self._movement_state.update()
