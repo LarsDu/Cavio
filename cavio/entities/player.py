@@ -87,7 +87,6 @@ class PlayerGroundState(PlayerState):
 
     def draw(self):
         u, v, w, h = tile_coords_to_world_coords(*PLAYER_IDLE)
-
         u1, v1, _, _ = tile_coords_to_world_coords(*PLAYER_WALK1)
         u2, v2, _, _ = tile_coords_to_world_coords(*PLAYER_WALK2)
         if self.player.is_grounded:
